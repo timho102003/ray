@@ -2,9 +2,8 @@ import os, glob
 from pathlib import Path
 from typing import Optional
 from dagshub.upload import Repo
-
+from copy import deepcopy
 from .mlflow import _MLflowLoggerUtil
-
 
 class _DagsHubLoggerUtil(_MLflowLoggerUtil):
 
@@ -24,6 +23,18 @@ class _DagsHubLoggerUtil(_MLflowLoggerUtil):
 
         if not mlflow_only:
             self.dvc_folder = self.repo.directory(str(self.paths["dvc_directory"]))
+    
+    def __deepcopy__(self, memo=None):
+        # mlflow is a module, and thus cannot be copied
+        _mlflow = self._mlflow
+        self.__dict__.pop("_mlflow")
+        dict_copy = deepcopy(self.__dict__, memo)
+        copied_object = _DagsHubLoggerUtil()
+        copied_object.__dict__.update(dict_copy)
+        self._mlflow = _mlflow
+        copied_object._mlflow = _mlflow
+        return copied_object
+    
 
     def _dvc_add(self, local_path="", remote_path:str = ""):
         if not os.path.isfile(local_path):
