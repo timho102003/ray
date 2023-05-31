@@ -1,28 +1,34 @@
 import os, glob
 from pathlib import Path
 from typing import Optional
-from dagshub.upload import Repo
 from copy import deepcopy
+
 from .mlflow import _MLflowLoggerUtil
+
+try:
+    from dagshub.upload import Repo
+except:
+    Repo = None
 
 class _DagsHubLoggerUtil(_MLflowLoggerUtil):
 
     def __init__(self, repo_owner:str="", repo_name:str="", mlflow_only:bool=False):
         super(_DagsHubLoggerUtil, self).__init__()
 
-        self.mlflow_only = mlflow_only
-        self.repo = Repo(
-            owner=repo_owner,
-            name=repo_name,
-            branch=os.getenv("BRANCH", "main"),
-        )
+        if Repo:
+            self.mlflow_only = mlflow_only
+            self.repo = Repo(
+                owner=repo_owner,
+                name=repo_name,
+                branch=os.getenv("BRANCH", "main"),
+            )
 
-        self.paths = {
-            "dvc_directory": Path("ray_artifacts"),
-        }
+            self.paths = {
+                "dvc_directory": Path("ray_artifacts"),
+            }
 
-        if not mlflow_only:
-            self.dvc_folder = self.repo.directory(str(self.paths["dvc_directory"]))
+            if not mlflow_only:
+                self.dvc_folder = self.repo.directory(str(self.paths["dvc_directory"]))
     
     def __deepcopy__(self, memo=None):
         # mlflow is a module, and thus cannot be copied

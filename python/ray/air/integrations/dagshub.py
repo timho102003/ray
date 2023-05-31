@@ -6,14 +6,16 @@ from typing import Dict, Optional, Union
 from ray.tune.experiment import Trial
 from ray.air._internal.dagshub import _DagsHubLoggerUtil
 from ray.util.annotations import PublicAPI
-from dagshub.common import config as dagshub_sys_config
 
 from ray.air import session
 
 try:
     import dagshub
+
+    from dagshub.common import config as dagshub_sys_config
 except:
     dagshub = None
+
 
 @PublicAPI(stability="alpha")
 def setup_dagshub(
@@ -184,6 +186,7 @@ def setup_dagshub(
     os.environ["MLFLOW_TRACKING_USERNAME"] = token
     os.environ["MLFLOW_TRACKING_PASSWORD"] = token
 
+    dagshub.auth.get_token(fail_if_no_token=True)
     dagshub.init(repo_name=repo_name, repo_owner=repo_owner)
     tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
 
@@ -261,6 +264,7 @@ class DagsHubLoggerCallback(MLflowLoggerCallback):
             repo_name, repo_owner = self.splitter(input("Please insert your repository owner_name/repo_name:"))
 
         if "MLFLOW_TRACKING_URI" not in os.environ or "dagshub" not in os.getenv("MLFLOW_TRACKING_URI"):
+            dagshub.auth.get_token(fail_if_no_token=True)
             dagshub.init(repo_name=repo_name, repo_owner=repo_owner)
             self.tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
 
