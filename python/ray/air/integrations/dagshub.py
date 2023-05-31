@@ -182,11 +182,10 @@ def setup_dagshub(
     else:
         raise Exception("Please setup either tracking_uri or dagshub_repository to track your experiment with dagshub")
 
-    token = dagshub.auth.get_token()
+    token = dagshub.auth.get_token(fail_if_no_token=True)
     os.environ["MLFLOW_TRACKING_USERNAME"] = token
     os.environ["MLFLOW_TRACKING_PASSWORD"] = token
 
-    dagshub.auth.get_token(fail_if_no_token=True)
     dagshub.init(repo_name=repo_name, repo_owner=repo_owner)
     tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
 
@@ -256,7 +255,7 @@ class DagsHubLoggerCallback(MLflowLoggerCallback):
                 repo_owner = self.tracking_uri.split(os.sep)[-2],
                 repo_name = self.tracking_uri.split(os.sep)[-1].replace(".mlflow", ""),
 
-        token = dagshub.auth.get_token()
+        token = dagshub.auth.get_token(fail_if_no_token=True)
         os.environ["MLFLOW_TRACKING_USERNAME"] = token
         os.environ["MLFLOW_TRACKING_PASSWORD"] = token
 
@@ -264,7 +263,6 @@ class DagsHubLoggerCallback(MLflowLoggerCallback):
             repo_name, repo_owner = self.splitter(input("Please insert your repository owner_name/repo_name:"))
 
         if "MLFLOW_TRACKING_URI" not in os.environ or "dagshub" not in os.getenv("MLFLOW_TRACKING_URI"):
-            dagshub.auth.get_token(fail_if_no_token=True)
             dagshub.init(repo_name=repo_name, repo_owner=repo_owner)
             self.tracking_uri = os.getenv("MLFLOW_TRACKING_URI")
 
